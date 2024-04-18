@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using TMPro;
+using Unity.VisualScripting;
 
 public class JimMovement : MonoBehaviour
 {
@@ -17,6 +18,8 @@ public class JimMovement : MonoBehaviour
     public Transform groundCheck;
     public LayerMask groundLayer;
     bool isOnGround = true;
+    public float cooldownTime = 5f;
+    private float lastUsedTime;
 
     // Start is called before the first frame update
     void Start()
