@@ -62,6 +62,11 @@ public class JimMovement : MonoBehaviour
             animator.SetBool("groundDetection", true);
         }
         animator.SetBool("groundDetection", !isOnGround);
+        if (isTouchingWall)
+        {
+            animator.SetBool("walljump", true);
+        }
+        animator.SetBool("walljump", !isTouchingWall);
         mh = Input.GetAxis("Horizontal");
         if(mh>0 && !derecha)
         {
@@ -123,7 +128,7 @@ public class JimMovement : MonoBehaviour
     {
         if(isSlidin)
         {
-            //isWallJumping = false;
+            isWallJumping = false;
             //wallJumpingDirection = -transform.localScale.x;  
             wallJumpingCounter = wallJumpingTime;
             //CancelInvoke(nameof(StopWallJumping));
@@ -134,7 +139,7 @@ public class JimMovement : MonoBehaviour
         }
         if(Input.GetButtonDown("Jump") && wallJumpingCounter > 0f)
         {
-            //isWallJumping = true;
+            isWallJumping = true;
             rb.velocity = new Vector2(wallJumpingDirection * wallJumpingPower.x, wallJumpingPower.y);
             wallJumpingCounter = 0f;
         }
