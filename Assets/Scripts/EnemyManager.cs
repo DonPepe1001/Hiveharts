@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -16,8 +17,7 @@ public class EnemyManager : MonoBehaviour
             {
                 Destroy(gameObject);
             }
-        }
-        if(collision.tag=="Player")
+        }else if(collision.tag=="Player")
         {
             SceneManager.LoadScene("LoseScene");
         }
