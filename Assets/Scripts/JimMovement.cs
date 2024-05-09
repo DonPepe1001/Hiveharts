@@ -34,6 +34,13 @@ public class JimMovement : MonoBehaviour
     private float wallJumpingDuration = 0.4f;
     private Vector2 wallJumpingPower = new Vector2(10f, 3f);
 
+    private bool canDash = true;
+    private bool isDashing;
+    private float dashingPower = 30f;
+    private float dashingTime = 0.2f;
+    private float dashingCooldown = 1f;
+    [SerializeField] private TrailRenderer tr;
+
 
     // Start is called before the first frame update
     void Start()
@@ -46,6 +53,10 @@ public class JimMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if ( isDashing)
+        {
+            return;
+        }
         isOnGround = Physics2D.OverlapCapsule(groundCheck.position,new Vector2(0.05f,0.45f),CapsuleDirection2D.Horizontal,0,groundLayer);
         isTouchingWall = Physics2D.OverlapCircle(wallCheck.position, 0.2f, wallLayer);
         if (isTouchingWall == true)
@@ -62,11 +73,6 @@ public class JimMovement : MonoBehaviour
             animator.SetBool("groundDetection", true);
         }
         animator.SetBool("groundDetection", !isOnGround);
-        if (isTouchingWall)
-        {
-            animator.SetBool("walljump", true);
-        }
-        animator.SetBool("walljump", !isTouchingWall);
         mh = Input.GetAxis("Horizontal");
         if(mh>0 && !derecha)
         {
@@ -82,14 +88,25 @@ public class JimMovement : MonoBehaviour
         WallSlide();
         WallJump();
 
+        if(Input.GetKeyDown(KeyCode.LeftShift)&& canDash)
+        {
+            StartCoroutine(Dash());
+        }
+
     }
 
     private void FixedUpdate()
     {
-        if(!isWallJumping)
+        if (isDashing)
+        {
+            return;
+        }
+        if (!isWallJumping)
         {
             rb.velocity = new Vector2(mh * vel, rb.velocity.y); 
         }
+        
+
     }
     private void voltear()
     {
@@ -128,7 +145,7 @@ public class JimMovement : MonoBehaviour
     {
         if(isSlidin)
         {
-            isWallJumping = false;
+            //isWallJumping = false;
             //wallJumpingDirection = -transform.localScale.x;  
             wallJumpingCounter = wallJumpingTime;
             //CancelInvoke(nameof(StopWallJumping));
@@ -139,7 +156,7 @@ public class JimMovement : MonoBehaviour
         }
         if(Input.GetButtonDown("Jump") && wallJumpingCounter > 0f)
         {
-            isWallJumping = true;
+            //isWallJumping = true;
             rb.velocity = new Vector2(wallJumpingDirection * wallJumpingPower.x, wallJumpingPower.y);
             wallJumpingCounter = 0f;
         }
@@ -149,4 +166,21 @@ public class JimMovement : MonoBehaviour
     {
         isWallJumping = false;
     } 
+
+    private IEnumerator Dash()
+    {
+        canDash = false;
+        isDashing = true;
+        float originalGravity = rb.gravityScale;
+        rb.gravityScale = 0f;
+        rb.velocity = new Vector2(transform.localScale.x * dashingPower, 0f);
+        tr.emitting = true;
+        yield return new WaitForSeconds(dashingTime);
+        tr.emitting = false;
+        rb.gravityScale = originalGravity;
+        isDashing = false;
+        yield return new WaitForSeconds(dashingCooldown);
+        canDash = true;
+
+    }
 }
