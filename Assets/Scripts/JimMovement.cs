@@ -14,30 +14,43 @@ public class JimMovement : MonoBehaviour
     SpriteRenderer sr;
     Animator animator;
     bool derecha = true;
-    float mh;
+    float mh = 0f;
     public float vel = 10;
     public float jmp = 5;
     public Transform Spawner;
     public GameObject prefab;
     public Transform groundCheck;
-    public Transform wallCheck;
-    public LayerMask groundLayer;
-    public LayerMask wallLayer;
+    [SerializeField] private Vector3 groundBoxDimensions;
+
+    [SerializeField] private LayerMask groundLayer;
+
     bool isOnGround = true;
-    bool isTouchingWall = false;
-    bool isSlidin = false;
+
+
     private bool isTouchingLeft;
     private bool isTouchingRight;
-    public float wallspeed;
-    private float lastUsedTime;
-    private float wallJumpingDirection;
-    private bool wallJumping;
+
+
     private bool canDash = true;
     private bool isDashing;
     private float dashingPower = 30f;
     private float dashingTime = 0.2f;
     private float dashingCooldown = 1f;
-    private float touchingLeftOrRgiht;
+    private float touchingLeftOrRight;
+
+    //walljump
+    private float inputX;
+    [Header("WallJump")]
+    [SerializeField] private Transform WallController;
+
+    [SerializeField] private Vector3 WallBoxDimensions;
+    private bool onWall;
+    private bool sliding;
+    [SerializeField] private float slideVelocity;
+
+
+
+
 
     [SerializeField] private TrailRenderer tr;
 
@@ -47,50 +60,41 @@ public class JimMovement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         sr = GetComponent<SpriteRenderer>();
-        animator = GetComponent<Animator>();    
+        animator = GetComponent<Animator>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if ( isDashing)
+        isOnGround = Physics2D.OverlapCapsule(groundCheck.position, groundBoxDimensions, 0f, groundLayer);
+
+        inputX = Input.GetAxis("Horizontal");
+
+        if (isDashing)
         {
             return;
         }
 
-        isOnGround = Physics2D.OverlapCapsule(groundCheck.position,new Vector2(0.05f,0.45f),CapsuleDirection2D.Horizontal,0,groundLayer);
 
-        isTouchingLeft = Physics2D.OverlapBox(new Vector2(gameObject.transform.position.x - 0.5f, gameObject.transform.position.y), new Vector2(0.2f, 0.9f), 0f, wallLayer);
 
-        isTouchingRight = Physics2D.OverlapBox(new Vector2(gameObject.transform.position.x + 0.5f, gameObject.transform.position.y), new Vector2(0.2f, 0.9f), 0f, wallLayer);
 
-        if(isTouchingLeft)
+
+
+
+        if (isTouchingLeft)
         {
-            touchingLeftOrRgiht = 1;
+            touchingLeftOrRight = 1;
         }
-        else if(isTouchingRight)
+        else if (isTouchingRight)
         {
-            touchingLeftOrRgiht = -1;
-        }
-
-        if(Input.GetKeyDown("space") && (isTouchingRight || isTouchingLeft) && !isOnGround)
-        {
-            wallJumping = true;
-            Invoke("SetJumpingToFalse", 0.08f);
+            touchingLeftOrRight = -1;
         }
 
-        if(wallJumping)
-        {
-            rb.velocity = new Vector2(vel * touchingLeftOrRgiht, jmp);
-        }
-        
 
-        isTouchingWall = Physics2D.OverlapCircle(wallCheck.position, 0.5f, wallLayer);
-        if (isTouchingWall == true)
-        {
-            Debug.Log("aaaa");
-        }
-        if(Input.GetAxis("Jump")>0 && isOnGround)
+        animator.SetBool("Sliding", sliding);
+
+
+        if (Input.GetAxis("Jump") > 0 && isOnGround)
         {
             rb.velocity = new Vector2(rb.velocity.x, 0);
             rb.AddForce(new Vector2(0, jmp), ForceMode2D.Impulse);
@@ -100,8 +104,10 @@ public class JimMovement : MonoBehaviour
             animator.SetBool("groundDetection", true);
         }
         animator.SetBool("groundDetection", !isOnGround);
-        mh = Input.GetAxis("Horizontal");
-        if(mh>0 && !derecha)
+
+        float mh = inputX * vel;
+
+        if (mh > 0 && !derecha)
         {
             voltear();
         }
@@ -110,30 +116,50 @@ public class JimMovement : MonoBehaviour
             voltear();
         }
 
-        if((!isTouchingLeft && !isTouchingRight) || isOnGround)
-        {
-            rb.velocity = new Vector2(mh * vel, rb.velocity.y);
-        }
+
+        rb.velocity = new Vector2(mh * vel, rb.velocity.y);
+
         animator.SetFloat("Velocity", Mathf.Abs(mh));
 
 
-        if(Input.GetKeyDown(KeyCode.LeftShift)&& canDash)
+        if (Input.GetKeyDown(KeyCode.LeftShift) && canDash)
         {
             StartCoroutine(Dash());
         }
 
-                
+        if (!isOnGround && onWall && inputX != 0)
+        {
+            sliding = true;
+        }
+        else
+        {
+            sliding = false;
+        }
+
+
+
         PlayerShooting();
-        WallSlide();
+
     }
+
 
     private void FixedUpdate()
     {
+
+
+        onWall = Physics2D.OverlapCapsule(WallController.position, WallBoxDimensions, 0f, groundLayer);
+
+        if (sliding)
+        {
+            rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -slideVelocity, float.MaxValue));
+        }
         if (isDashing)
         {
             return;
         }
     }
+
+
     private void voltear()
     {
         derecha = !derecha;
@@ -142,33 +168,10 @@ public class JimMovement : MonoBehaviour
 
     private void PlayerShooting()
     {
-        if (Input.GetButtonDown("Fire1")) 
+        if (Input.GetButtonDown("Fire1"))
         {
-            Instantiate(prefab,Spawner.position,Spawner.rotation);
+            Instantiate(prefab, Spawner.position, Spawner.rotation);
         }
-    }
-
-    private bool isWalled()
-    {
-        return Physics2D.OverlapCircle(wallCheck.position, 0.2f, wallLayer);
-    }
-
-    private void WallSlide()
-    {
-        if (!isOnGround && isTouchingWall)
-        {
-            isSlidin = true;
-            rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -wallspeed, float.MaxValue));
-        }
-        else
-        {
-            isSlidin = false;
-        }
-    }
-
-    private void SetJumpingToFalse()
-    {
-        wallJumping = false;
     }
 
     private IEnumerator Dash()
@@ -186,5 +189,13 @@ public class JimMovement : MonoBehaviour
         yield return new WaitForSeconds(dashingCooldown);
         canDash = true;
 
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireCube(groundCheck.position, groundBoxDimensions);
+
+        Gizmos.DrawWireCube(WallController.position, WallBoxDimensions);
     }
 }
