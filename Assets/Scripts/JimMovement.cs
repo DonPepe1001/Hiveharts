@@ -6,6 +6,7 @@ using TMPro;
 using Unity.VisualScripting;
 using Unity.Mathematics;
 using UnityEngine.AI;
+using Unity.VisualScripting.Dependencies.Sqlite;
 
 public class JimMovement : MonoBehaviour
 {
@@ -25,20 +26,19 @@ public class JimMovement : MonoBehaviour
     bool isOnGround = true;
     bool isTouchingWall = false;
     bool isSlidin = false;
-    private bool isWallJumping;
+    private bool isTouchingLeft;
+    private bool isTouchingRight;
     public float wallspeed;
     private float lastUsedTime;
     private float wallJumpingDirection;
-    private float wallJumpingTime = 4f;
-    private float wallJumpingCounter;
-    private float wallJumpingDuration = 0.4f;
-    private Vector2 wallJumpingPower = new Vector2(10f, 3f);
-
+    private bool wallJumping;
     private bool canDash = true;
     private bool isDashing;
     private float dashingPower = 30f;
     private float dashingTime = 0.2f;
     private float dashingCooldown = 1f;
+    private float touchingLeftOrRgiht;
+
     [SerializeField] private TrailRenderer tr;
 
 
@@ -57,8 +57,35 @@ public class JimMovement : MonoBehaviour
         {
             return;
         }
+
         isOnGround = Physics2D.OverlapCapsule(groundCheck.position,new Vector2(0.05f,0.45f),CapsuleDirection2D.Horizontal,0,groundLayer);
-        isTouchingWall = Physics2D.OverlapCircle(wallCheck.position, 0.2f, wallLayer);
+
+        isTouchingLeft = Physics2D.OverlapBox(new Vector2(gameObject.transform.position.x - 0.5f, gameObject.transform.position.y), new Vector2(0.2f, 0.9f), 0f, wallLayer);
+
+        isTouchingRight = Physics2D.OverlapBox(new Vector2(gameObject.transform.position.x + 0.5f, gameObject.transform.position.y), new Vector2(0.2f, 0.9f), 0f, wallLayer);
+
+        if(isTouchingLeft)
+        {
+            touchingLeftOrRgiht = 1;
+        }
+        else if(isTouchingRight)
+        {
+            touchingLeftOrRgiht = -1;
+        }
+
+        if(Input.GetKeyDown("space") && (isTouchingRight || isTouchingLeft) && !isOnGround)
+        {
+            wallJumping = true;
+            Invoke("SetJumpingToFalse", 0.08f);
+        }
+
+        if(wallJumping)
+        {
+            rb.velocity = new Vector2(vel * touchingLeftOrRgiht, jmp);
+        }
+        
+
+        isTouchingWall = Physics2D.OverlapCircle(wallCheck.position, 0.5f, wallLayer);
         if (isTouchingWall == true)
         {
             Debug.Log("aaaa");
@@ -82,17 +109,22 @@ public class JimMovement : MonoBehaviour
         {
             voltear();
         }
-        rb.velocity = new Vector2(mh * vel, rb.velocity.y);
+
+        if((!isTouchingLeft && !isTouchingRight) || isOnGround)
+        {
+            rb.velocity = new Vector2(mh * vel, rb.velocity.y);
+        }
         animator.SetFloat("Velocity", Mathf.Abs(mh));
-        PlayerShooting();
-        WallSlide();
-        WallJump();
+
 
         if(Input.GetKeyDown(KeyCode.LeftShift)&& canDash)
         {
             StartCoroutine(Dash());
         }
 
+                
+        PlayerShooting();
+        WallSlide();
     }
 
     private void FixedUpdate()
@@ -101,12 +133,6 @@ public class JimMovement : MonoBehaviour
         {
             return;
         }
-        if (!isWallJumping)
-        {
-            rb.velocity = new Vector2(mh * vel, rb.velocity.y); 
-        }
-        
-
     }
     private void voltear()
     {
@@ -122,11 +148,10 @@ public class JimMovement : MonoBehaviour
         }
     }
 
-    private bool IsWalled()
+    private bool isWalled()
     {
         return Physics2D.OverlapCircle(wallCheck.position, 0.2f, wallLayer);
     }
-
 
     private void WallSlide()
     {
@@ -141,31 +166,10 @@ public class JimMovement : MonoBehaviour
         }
     }
 
-    private void WallJump()
+    private void SetJumpingToFalse()
     {
-        if(isSlidin)
-        {
-            //isWallJumping = false;
-            //wallJumpingDirection = -transform.localScale.x;  
-            wallJumpingCounter = wallJumpingTime;
-            //CancelInvoke(nameof(StopWallJumping));
-        }
-        else
-        {
-            wallJumpingCounter -= Time.deltaTime;
-        }
-        if(Input.GetButtonDown("Jump") && wallJumpingCounter > 0f)
-        {
-            //isWallJumping = true;
-            rb.velocity = new Vector2(wallJumpingDirection * wallJumpingPower.x, wallJumpingPower.y);
-            wallJumpingCounter = 0f;
-        }
+        wallJumping = false;
     }
-
-    private void StopWallJumping()
-    {
-        isWallJumping = false;
-    } 
 
     private IEnumerator Dash()
     {

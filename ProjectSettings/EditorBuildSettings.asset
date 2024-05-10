@@ -14,4 +14,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/LoseScene.unity
     guid: dd1aa6b5cdcfea545b52ca4cb94947da
+  - enabled: 1
+    path: Assets/Scenes/SeaLevel.unity
+    guid: f706b576717225644832acffe56eb1cd
   m_configObjects: {}
