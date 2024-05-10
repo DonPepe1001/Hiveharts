@@ -14,7 +14,7 @@ public class stingerAttack : MonoBehaviour
         }
         if(collision.tag == "Delete")
         {
-            Destroy(gameObjectz1)
+            Destroy(gameObject);
         }
     }
 }
