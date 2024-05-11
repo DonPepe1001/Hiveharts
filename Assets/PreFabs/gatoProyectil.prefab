@@ -162,4 +162,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   vel: 2.5
-  lifeTime: 1
+  lifeTime: 1.5

@@ -38,10 +38,9 @@ public float vel = 10;
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if(collision.tag!="Player")
+        if(collision.tag == "Enemy")
         {
-            GetComponent<SpriteRenderer>().enabled = false;
-            GetComponent<CapsuleCollider2D>().enabled = false;
+            Destroy(gameObject);
         }
     }
 }

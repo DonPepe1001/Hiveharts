@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 2
   tags:
   - CatPew
+  - Enemy
   layers:
   - Default
   - TransparentFX
