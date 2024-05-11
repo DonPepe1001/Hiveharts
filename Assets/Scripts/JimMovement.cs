@@ -20,15 +20,10 @@ public class JimMovement : MonoBehaviour
     public Transform Spawner;
     public GameObject prefab;
     public Transform groundCheck;
-    [SerializeField] private Vector3 groundBoxDimensions;
 
-    [SerializeField] private LayerMask groundLayer;
+    public LayerMask groundLayer;
 
     bool isOnGround = true;
-
-
-    private bool isTouchingLeft;
-    private bool isTouchingRight;
 
 
     private bool canDash = true;
@@ -40,6 +35,7 @@ public class JimMovement : MonoBehaviour
 
     //walljump
     private float inputX;
+
     [Header("WallJump")]
     [SerializeField] private Transform WallController;
 
@@ -66,7 +62,7 @@ public class JimMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        isOnGround = Physics2D.OverlapCapsule(groundCheck.position, groundBoxDimensions, 0f, groundLayer);
+        isOnGround = Physics2D.OverlapCapsule(groundCheck.position, new Vector2(0.05f, 0.45f), CapsuleDirection2D.Horizontal, 0, groundLayer);
 
         inputX = Input.GetAxis("Horizontal");
 
@@ -74,22 +70,6 @@ public class JimMovement : MonoBehaviour
         {
             return;
         }
-
-
-
-
-
-
-
-        if (isTouchingLeft)
-        {
-            touchingLeftOrRight = 1;
-        }
-        else if (isTouchingRight)
-        {
-            touchingLeftOrRight = -1;
-        }
-
 
         animator.SetBool("Sliding", sliding);
 
@@ -105,7 +85,7 @@ public class JimMovement : MonoBehaviour
         }
         animator.SetBool("groundDetection", !isOnGround);
 
-        float mh = inputX * vel;
+        mh = inputX * vel;
 
         if (mh > 0 && !derecha)
         {
@@ -153,6 +133,7 @@ public class JimMovement : MonoBehaviour
         {
             rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -slideVelocity, float.MaxValue));
         }
+
         if (isDashing)
         {
             return;
@@ -194,7 +175,6 @@ public class JimMovement : MonoBehaviour
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireCube(groundCheck.position, groundBoxDimensions);
 
         Gizmos.DrawWireCube(WallController.position, WallBoxDimensions);
     }
