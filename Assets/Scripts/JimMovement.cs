@@ -25,7 +25,6 @@ public class JimMovement : MonoBehaviour
 
     bool isOnGround = true;
 
-
     private bool canDash = true;
     private bool isDashing;
     private float dashingPower = 30f;
