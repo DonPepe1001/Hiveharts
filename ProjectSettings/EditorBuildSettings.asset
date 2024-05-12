@@ -17,4 +17,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/SeaLevel.unity
     guid: f706b576717225644832acffe56eb1cd
+  - enabled: 1
+    path: Assets/Scenes/Main menu.unity
+    guid: a57425c906639534da31131498caef27
   m_configObjects: {}

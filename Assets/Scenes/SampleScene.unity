@@ -2034,7 +2034,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f3fd26fcefde4a4db9c224d97ebeaf2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  LifeEnemy: 10
+  LifeEnemy: 10000
 --- !u!1 &943489203
 GameObject:
   m_ObjectHideFlags: 0
