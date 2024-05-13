@@ -19,7 +19,7 @@ public class cannonBallSpawner : MonoBehaviour
     {
         timer += Time.deltaTime;
 
-        if(timer > 1)
+        if(timer > 3)
         {
             timer = 0;
             shoot();

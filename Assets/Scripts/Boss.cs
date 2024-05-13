@@ -1,12 +1,11 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class EnemyManager : MonoBehaviour
+public class Boss : MonoBehaviour
 {
-    public float LifeEnemy=10;
+    public float LifeEnemy=100;
     // Start is called before the first frame update
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -15,7 +14,7 @@ public class EnemyManager : MonoBehaviour
             LifeEnemy -= CatPew.damage;
             if(LifeEnemy<=0)
             {
-                Destroy(gameObject);
+                SceneManager.LoadScene("SeaLevel");
             }
         }else if(collision.tag=="Player")
         {

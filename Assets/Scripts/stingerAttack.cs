@@ -9,8 +9,7 @@ public class stingerAttack : MonoBehaviour
     {
         if(collision.tag == "Player")
         {
-            Debug.Log("morision");
-            SceneManager.LoadScene("LoseScene");
+            SceneManager.LoadScene("SampleScene");
         }
         if(collision.tag == "Delete")
         {
