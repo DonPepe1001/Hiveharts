@@ -1,12 +1,5 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using System;
-using TMPro;
-using Unity.VisualScripting;
-using Unity.Mathematics;
-using UnityEngine.AI;
-using Unity.VisualScripting.Dependencies.Sqlite;
 
 public class JimMovement : MonoBehaviour
 {
@@ -30,16 +23,20 @@ public class JimMovement : MonoBehaviour
     private float dashingPower = 30f;
     private float dashingTime = 0.2f;
     private float dashingCooldown = 1f;
-    private float touchingLeftOrRight;
     private float inputX;
 
     [Header("WallJump")]
     [SerializeField] private Transform WallController;
 
     [SerializeField] private Vector3 WallBoxDimensions;
+    [SerializeField] private Vector3 GroundBoxDimensions;
     private bool onWall;
     private bool sliding;
     [SerializeField] private float slideVelocity;
+    [SerializeField] private float jumpforceX;
+    [SerializeField] private float jumpforceY;
+    [SerializeField] private float wallJumpTime;
+    private bool wallJumping;
 
 
 
@@ -61,7 +58,7 @@ public class JimMovement : MonoBehaviour
     {
         isOnGround = Physics2D.OverlapCapsule(groundCheck.position, new Vector2(0.05f, 0.45f), CapsuleDirection2D.Horizontal, 0, groundLayer);
 
-        inputX = Input.GetAxis("Horizontal");
+        inputX = Input.GetAxisRaw ("Horizontal");
 
         if (isDashing)
         {
@@ -71,11 +68,17 @@ public class JimMovement : MonoBehaviour
         animator.SetBool("Sliding", sliding);
 
 
-        if (Input.GetAxis("Jump") > 0 && isOnGround)
+        if (Input.GetAxis("Jump") > 0 && isOnGround && !sliding)
         {
             rb.velocity = new Vector2(rb.velocity.x, 0);
             rb.AddForce(new Vector2(0, jmp), ForceMode2D.Impulse);
         }
+
+        if (Input.GetAxis("Jump") > 0 && onWall && sliding)
+        {
+            WallJump();
+        }
+
         if (isOnGround)
         {
             animator.SetBool("groundDetection", true);
@@ -93,8 +96,11 @@ public class JimMovement : MonoBehaviour
             voltear();
         }
 
+        if (!wallJumping)
+        {
+            rb.velocity = new Vector2(mh * vel, rb.velocity.y);
 
-        rb.velocity = new Vector2(mh * vel, rb.velocity.y);
+        }
 
         animator.SetFloat("Velocity", Mathf.Abs(mh));
 
@@ -113,7 +119,7 @@ public class JimMovement : MonoBehaviour
             sliding = false;
         }
 
-
+        
 
         PlayerShooting();
 
@@ -122,8 +128,6 @@ public class JimMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
-
-
         onWall = Physics2D.OverlapCapsule(WallController.position, WallBoxDimensions, 0f, groundLayer);
 
         if (sliding)
@@ -135,6 +139,20 @@ public class JimMovement : MonoBehaviour
         {
             return;
         }
+    }
+
+    private void WallJump()
+    {
+        onWall = false;
+        rb.velocity = new Vector2(jumpforceX * -inputX, jumpforceY);
+        StartCoroutine(ChangeWallJump());
+    }
+
+    IEnumerator ChangeWallJump()
+    {
+        wallJumping = true;
+        yield return new WaitForSeconds(wallJumpTime);
+        wallJumping = false;
     }
 
 
@@ -172,7 +190,7 @@ public class JimMovement : MonoBehaviour
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.yellow;
-
+        Gizmos.DrawWireCube(groundCheck.position, GroundBoxDimensions);
         Gizmos.DrawWireCube(WallController.position, WallBoxDimensions);
     }
 }
