@@ -3110,7 +3110,11 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   horizontalDashPower: 30
+<<<<<<< HEAD
+  verticalDashPower: 2.2
+=======
   verticalDashPower: 2
+>>>>>>> 0b9b3378a0c45505eca9ea483c27b3fcb3b334e8
   diagonalDashPower: 3
   WallController: {fileID: 1907978394}
   WallBoxDimensions: {x: 0.04, y: 0.23, z: 0}
