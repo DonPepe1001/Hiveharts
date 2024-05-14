@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 6633047608320698595}
   - component: {fileID: -2083456506859367404}
   - component: {fileID: -3112350331144957126}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: gatoProyectil
   m_TagString: CatPew
   m_Icon: {fileID: 0}
