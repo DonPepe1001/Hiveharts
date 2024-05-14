@@ -13,21 +13,21 @@ public class JimMovement : MonoBehaviour
     public Transform Spawner;
     public GameObject prefab;
     public Transform groundCheck;
-
     public LayerMask groundLayer;
-
     bool isOnGround = true;
-
     private bool canDash = true;
     private bool isDashing;
-    private float dashingPower = 30f;
-    private float dashingTime = 0.2f;
+    private float dashingTime = 0.15f;
     private float dashingCooldown = 1f;
     private float inputX;
 
+    [Header("Dash Settings")]
+    public float horizontalDashPower = 30f;
+    public float verticalDashPower = 20f;
+    public float diagonalDashPower = 25f;
+
     [Header("WallJump")]
     [SerializeField] private Transform WallController;
-
     [SerializeField] private Vector3 WallBoxDimensions;
     [SerializeField] private Vector3 GroundBoxDimensions;
     private bool onWall;
@@ -38,14 +38,9 @@ public class JimMovement : MonoBehaviour
     [SerializeField] private float wallJumpTime;
     private bool wallJumping;
 
-
-
-
-
     [SerializeField] private TrailRenderer tr;
+    bool wKeyPressed = false;
 
-
-    // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -53,12 +48,14 @@ public class JimMovement : MonoBehaviour
         animator = GetComponent<Animator>();
     }
 
-    // Update is called once per frame
     void Update()
     {
-        isOnGround = Physics2D.OverlapCapsule(groundCheck.position, new Vector2(0.05f, 0.45f), CapsuleDirection2D.Horizontal, 0, groundLayer);
+        bool wKeyPressed = Input.GetKey(KeyCode.W);
+        bool waKeyPressed = Input.GetKey(KeyCode.W) && Input.GetKey(KeyCode.A);
+        bool wdKeyPressed = Input.GetKey(KeyCode.W) && Input.GetKey(KeyCode.D);
 
-        inputX = Input.GetAxisRaw ("Horizontal");
+        isOnGround = Physics2D.OverlapCapsule(groundCheck.position, new Vector2(0.05f, 0.45f), CapsuleDirection2D.Horizontal, 0, groundLayer);
+        inputX = Input.GetAxisRaw("Horizontal");
 
         if (isDashing)
         {
@@ -66,7 +63,6 @@ public class JimMovement : MonoBehaviour
         }
 
         animator.SetBool("Sliding", sliding);
-
 
         if (Input.GetAxis("Jump") > 0 && isOnGround && !sliding)
         {
@@ -89,25 +85,75 @@ public class JimMovement : MonoBehaviour
 
         if (mh > 0 && !derecha)
         {
-            voltear();
+            Flip();
         }
         else if (mh < 0 && derecha)
         {
-            voltear();
+            Flip();
         }
 
         if (!wallJumping)
         {
             rb.velocity = new Vector2(mh * vel, rb.velocity.y);
-
         }
 
         animator.SetFloat("Velocity", Mathf.Abs(mh));
 
-
-        if (Input.GetKeyDown(KeyCode.LeftShift) && canDash)
+        // Check if W key is pressed
+        if (Input.GetKeyDown(KeyCode.W))
         {
-            StartCoroutine(Dash());
+            wKeyPressed = true;
+        }
+        else if (Input.GetKeyUp(KeyCode.W))
+        {
+            wKeyPressed = false;
+        }
+
+        //check if WA is pressed
+        if (Input.GetKeyDown(KeyCode.W) && (Input.GetKeyDown(KeyCode.A)))
+        {
+            waKeyPressed = true;
+        }
+        else if (Input.GetKeyUp(KeyCode.W) || (Input.GetKeyUp(KeyCode.A)))
+        {
+            waKeyPressed = false;
+        }
+
+        //check if WD is pressed
+        if (Input.GetKeyDown(KeyCode.W) && (Input.GetKeyDown(KeyCode.D)))
+        {
+            wdKeyPressed = true;
+        }
+        else if (Input.GetKeyUp(KeyCode.W) || (Input.GetKeyUp(KeyCode.D)))
+        {
+            wdKeyPressed = false;
+        }
+
+
+
+        // Horizontal Dash
+        if (Input.GetKeyDown(KeyCode.LeftShift) && canDash && !wKeyPressed)
+        {
+            StartCoroutine(Dash(Vector2.right * transform.localScale.x * horizontalDashPower));
+        }
+
+        // Upward Dash
+        if (wKeyPressed && Input.GetKeyDown(KeyCode.LeftShift) && canDash && !waKeyPressed && !wdKeyPressed)
+        {
+            StartCoroutine(Dash(Vector2.up * verticalDashPower));
+        }
+
+
+        //upleft dash
+        if (waKeyPressed && Input.GetKeyDown(KeyCode.LeftShift) && canDash )
+        {
+            StartCoroutine(Dash((Vector2.up + Vector2.left).normalized * diagonalDashPower));
+        }
+
+        //upright dash
+        if (wdKeyPressed && Input.GetKeyDown(KeyCode.LeftShift) && canDash )
+        {
+            StartCoroutine(Dash((Vector2.up + Vector2.right).normalized * diagonalDashPower));
         }
 
         if (!isOnGround && onWall && inputX != 0)
@@ -119,12 +165,8 @@ public class JimMovement : MonoBehaviour
             sliding = false;
         }
 
-        
-
         PlayerShooting();
-
     }
-
 
     private void FixedUpdate()
     {
@@ -143,32 +185,28 @@ public class JimMovement : MonoBehaviour
 
     private void WallJump()
     {
-        onWall = false;
-        rb.velocity = new Vector2(jumpforceX * -inputX, jumpforceY);
-        StartCoroutine(ChangeWallJump());
+        wallJumping = true;
+        StartCoroutine(DisableWallJump());
+
+        Vector2 jumpDirection = new Vector2((derecha ? -1 : 1) * jumpforceX, jumpforceY);
+        rb.velocity = Vector2.zero;
+        rb.AddForce(jumpDirection, ForceMode2D.Impulse);
+
+        sliding = false;
     }
 
-    IEnumerator ChangeWallJump()
+    IEnumerator DisableWallJump()
     {
-        wallJumping = true;
         yield return new WaitForSeconds(wallJumpTime);
         wallJumping = false;
     }
 
-
-    private void voltear()
+    private void Flip()
     {
         derecha = !derecha;
         transform.localScale = new Vector3(-transform.localScale.x, transform.localScale.y, transform.localScale.z);
     }
 
-    //private void PlayerShooting()
-    //{
-    //    if (Input.GetButtonDown("Fire1"))
-    //    {
-    //        Instantiate(prefab, Spawner.position, Spawner.rotation);
-    //    }
-    //}
     private void PlayerShooting()
     {
         if (Input.GetButtonDown("Fire1"))
@@ -178,25 +216,19 @@ public class JimMovement : MonoBehaviour
 
             if (catPew != null)
             {
-                // Determine direction based on player's facing direction
                 Vector2 direction = (derecha) ? Vector2.right : Vector2.left;
                 catPew.SetVelocity(direction);
             }
         }
     }
 
-
-
-
-
-
-    private IEnumerator Dash()
+    private IEnumerator Dash(Vector2 dashDirection)
     {
         canDash = false;
         isDashing = true;
         float originalGravity = rb.gravityScale;
         rb.gravityScale = 0f;
-        rb.velocity = new Vector2(transform.localScale.x * dashingPower, 0f);
+        rb.velocity = dashDirection;
         tr.emitting = true;
         yield return new WaitForSeconds(dashingTime);
         tr.emitting = false;
@@ -204,7 +236,6 @@ public class JimMovement : MonoBehaviour
         isDashing = false;
         yield return new WaitForSeconds(dashingCooldown);
         canDash = true;
-
     }
 
     private void OnDrawGizmos()
