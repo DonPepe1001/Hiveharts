@@ -1148,7 +1148,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 1.1165489
+  orthographic size: 1.1
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -3109,6 +3109,9 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 8
+  horizontalDashPower: 30
+  verticalDashPower: 2
+  diagonalDashPower: 3
   WallController: {fileID: 1907978394}
   WallBoxDimensions: {x: 0.04, y: 0.23, z: 0}
   GroundBoxDimensions: {x: 0.12, y: 0.03, z: 0}
