@@ -1095,7 +1095,11 @@ MonoBehaviour:
     m_Bits: 8
   WallController: {fileID: 1812755216}
   WallBoxDimensions: {x: 0.04, y: 0.23, z: 0}
+  GroundBoxDimensions: {x: 0, y: 0, z: 0}
   slideVelocity: 1
+  jumpforceX: 0
+  jumpforceY: 0
+  wallJumpTime: 0
   tr: {fileID: 1566966510}
 --- !u!50 &1566966512
 Rigidbody2D:
@@ -1242,7 +1246,7 @@ Transform:
   m_GameObject: {fileID: 1650523843}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1.76895, y: 2.3373, z: 0}
+  m_LocalPosition: {x: 0.077, y: 2.321, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
