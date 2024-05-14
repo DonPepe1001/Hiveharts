@@ -162,13 +162,33 @@ public class JimMovement : MonoBehaviour
         transform.localScale = new Vector3(-transform.localScale.x, transform.localScale.y, transform.localScale.z);
     }
 
+    //private void PlayerShooting()
+    //{
+    //    if (Input.GetButtonDown("Fire1"))
+    //    {
+    //        Instantiate(prefab, Spawner.position, Spawner.rotation);
+    //    }
+    //}
     private void PlayerShooting()
     {
         if (Input.GetButtonDown("Fire1"))
         {
-            Instantiate(prefab, Spawner.position, Spawner.rotation);
+            GameObject bullet = Instantiate(prefab, Spawner.position, Spawner.rotation);
+            CatPew catPew = bullet.GetComponent<CatPew>();
+
+            if (catPew != null)
+            {
+                // Determine direction based on player's facing direction
+                Vector2 direction = (derecha) ? Vector2.right : Vector2.left;
+                catPew.SetVelocity(direction);
+            }
         }
     }
+
+
+
+
+
 
     private IEnumerator Dash()
     {
