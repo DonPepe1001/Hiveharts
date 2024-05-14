@@ -31,8 +31,6 @@ public class JimMovement : MonoBehaviour
     private float dashingTime = 0.2f;
     private float dashingCooldown = 1f;
     private float touchingLeftOrRight;
-
-    //walljump
     private float inputX;
 
     [Header("WallJump")]
