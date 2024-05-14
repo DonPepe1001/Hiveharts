@@ -40,6 +40,7 @@ public class JimMovement : MonoBehaviour
 
     [SerializeField] private TrailRenderer tr;
     bool wKeyPressed = false;
+    private bool slowMoActive = false;
 
     void Start()
     {
@@ -53,9 +54,9 @@ public class JimMovement : MonoBehaviour
         bool wKeyPressed = Input.GetKey(KeyCode.W);
         bool waKeyPressed = Input.GetKey(KeyCode.W) && Input.GetKey(KeyCode.A);
         bool wdKeyPressed = Input.GetKey(KeyCode.W) && Input.GetKey(KeyCode.D);
-
-        isOnGround = Physics2D.OverlapCapsule(groundCheck.position, new Vector2(0.05f, 0.45f), CapsuleDirection2D.Horizontal, 0, groundLayer);
-        inputX = Input.GetAxisRaw("Horizontal");
+       
+        
+       
 
         if (isDashing)
         {
@@ -81,23 +82,13 @@ public class JimMovement : MonoBehaviour
         }
         animator.SetBool("groundDetection", !isOnGround);
 
-        mh = inputX * vel;
-
-        if (mh > 0 && !derecha)
-        {
-            Flip();
-        }
-        else if (mh < 0 && derecha)
-        {
-            Flip();
-        }
-
+      
         if (!wallJumping)
         {
             rb.velocity = new Vector2(mh * vel, rb.velocity.y);
         }
 
-        animator.SetFloat("Velocity", Mathf.Abs(mh));
+      
 
         // Check if W key is pressed
         if (Input.GetKeyDown(KeyCode.W))
@@ -164,13 +155,40 @@ public class JimMovement : MonoBehaviour
         {
             sliding = false;
         }
-
+        //SlowMo ability
+        if (Input.GetMouseButtonDown(1)) 
+        {
+            slowMoActive = !slowMoActive;
+            Time.timeScale = slowMoActive ? 0.5f : 1.0f;
+        }
+        Time.fixedDeltaTime = 0.02f * Time.timeScale;
         PlayerShooting();
     }
 
     private void FixedUpdate()
     {
-        onWall = Physics2D.OverlapCapsule(WallController.position, WallBoxDimensions, 0f, groundLayer);
+        if (!slowMoActive)
+        {
+            // Only execute physics calculations if slow-motion is not active
+            // This ensures that the player's movement is not affected by slow-motion
+            // Add your player movement logic here using Rigidbody velocity
+            isOnGround = Physics2D.OverlapCapsule(groundCheck.position, new Vector2(0.05f, 0.45f), CapsuleDirection2D.Horizontal, 0, groundLayer); 
+            inputX = Input.GetAxisRaw("Horizontal");
+            mh = inputX * vel;
+
+            if (mh > 0 && !derecha)
+            {
+                Flip();
+            }
+            else if (mh < 0 && derecha)
+            {
+                Flip();
+            }
+
+            animator.SetFloat("Velocity", Mathf.Abs(mh)); 
+            onWall = Physics2D.OverlapCapsule(WallController.position, WallBoxDimensions, 0f, groundLayer);
+        }
+       
 
         if (sliding)
         {
@@ -181,6 +199,7 @@ public class JimMovement : MonoBehaviour
         {
             return;
         }
+
     }
 
     private void WallJump()
@@ -223,7 +242,19 @@ public class JimMovement : MonoBehaviour
     }
 
     private IEnumerator Dash(Vector2 dashDirection)
-    {
+    { 
+        //original time scale
+        float originalTimeScale = Time.timeScale;
+
+        //slowmo effect
+        Time.timeScale = 0.5f; 
+
+        // Wait for a short duration for the slow-motion effect
+        yield return new WaitForSeconds(0.1f);
+
+        // Reset the time scale to its original value
+        Time.timeScale = originalTimeScale;
+
         canDash = false;
         isDashing = true;
         float originalGravity = rb.gravityScale;
