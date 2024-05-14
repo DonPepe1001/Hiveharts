@@ -54,9 +54,9 @@ public class JimMovement : MonoBehaviour
         bool wKeyPressed = Input.GetKey(KeyCode.W);
         bool waKeyPressed = Input.GetKey(KeyCode.W) && Input.GetKey(KeyCode.A);
         bool wdKeyPressed = Input.GetKey(KeyCode.W) && Input.GetKey(KeyCode.D);
-       
-        
-       
+
+        isOnGround = Physics2D.OverlapCapsule(groundCheck.position, new Vector2(0.05f, 0.45f), CapsuleDirection2D.Horizontal, 0, groundLayer);
+        inputX = Input.GetAxisRaw("Horizontal");
 
         if (isDashing)
         {
@@ -82,13 +82,23 @@ public class JimMovement : MonoBehaviour
         }
         animator.SetBool("groundDetection", !isOnGround);
 
-      
+        mh = inputX * vel;
+
+        if (mh > 0 && !derecha)
+        {
+            Flip();
+        }
+        else if (mh < 0 && derecha)
+        {
+            Flip();
+        }
+
         if (!wallJumping)
         {
             rb.velocity = new Vector2(mh * vel, rb.velocity.y);
         }
 
-      
+        animator.SetFloat("Velocity", Mathf.Abs(mh));
 
         // Check if W key is pressed
         if (Input.GetKeyDown(KeyCode.W))
@@ -167,28 +177,7 @@ public class JimMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (!slowMoActive)
-        {
-            // Only execute physics calculations if slow-motion is not active
-            // This ensures that the player's movement is not affected by slow-motion
-            // Add your player movement logic here using Rigidbody velocity
-            isOnGround = Physics2D.OverlapCapsule(groundCheck.position, new Vector2(0.05f, 0.45f), CapsuleDirection2D.Horizontal, 0, groundLayer); 
-            inputX = Input.GetAxisRaw("Horizontal");
-            mh = inputX * vel;
-
-            if (mh > 0 && !derecha)
-            {
-                Flip();
-            }
-            else if (mh < 0 && derecha)
-            {
-                Flip();
-            }
-
-            animator.SetFloat("Velocity", Mathf.Abs(mh)); 
-            onWall = Physics2D.OverlapCapsule(WallController.position, WallBoxDimensions, 0f, groundLayer);
-        }
-       
+        onWall = Physics2D.OverlapCapsule(WallController.position, WallBoxDimensions, 0f, groundLayer);
 
         if (sliding)
         {
